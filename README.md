@@ -72,12 +72,12 @@ This project involves:
 
 🎯 This repository is an excellent resource for professionals and students looking to showcase expertise in:
 
-. SQL Development
-. Data Architect
-. Data Engineering
-. ETL Pipeline Developer
-. Data Modeling
-. Data Analytics
+- SQL Development
+- Data Architect
+- Data Engineering
+- ETL Pipeline Developer
+- Data Modeling
+- Data Analytics
 
 ---
 ## Project Requirements
@@ -85,21 +85,21 @@ This project involves:
 Building the Data Warehouse (Data Engineering)
 
 ### Objective
-Develop a modern data warehouse using SQL Server to consolidate sales data, enabling analytical reporting and informed decision-making.
+Develop a modern data warehouse using Python and PostgreSQL to consolidate sales data, enabling analytical reporting and informed decision-making.
 
 ### Specifications
-. ***Data Sources***: Import data source systems provided as CSV files.
-. ***Data Quality***: Cleanse and resolve data quality issues prior to analysis.
-. ***Integration***: Combine both sources into a single, user-friendly data model designed for analytical queries.
-. ***Scope***: Focus on the latest dataset only; historization of data is not required.
-. ***Documentation***: Provide clear documentation of the data model to support both business stakeholders and analytics teams.
+- ***Data Sources***: Import data source systems provided as CSV files.
+- ***Data Quality***: Cleanse and resolve data quality issues prior to analysis.
+- ***Integration***: Combine both sources into a single, user-friendly data model designed for analytical queries.
+- ***Scope***: Focus on the latest dataset only; historization of data is not required.
+- ***Documentation***: Provide clear documentation of the data model to support both business stakeholders and analytics teams.
 
 ---
 
 ## Lincense
 
-This project is licensed under [Google](https://www.mit.com) for more info.
-. You are free to use, modify, and share this project with proper attribution.
+This project is licensed under MIT lincense for more info.
+- You are free to use, modify, and share this project with proper attribution.
 
 ---
 
