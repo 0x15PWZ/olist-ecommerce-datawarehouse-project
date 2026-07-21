@@ -25,6 +25,7 @@ Execution Flow
 from scripts.silver.silver_loader import load_bronze_to_silver
 from scripts.transformations.customers import transform_customers
 
+
 def load_customer(spark):
     """
     Execute Customers Silver ETL.

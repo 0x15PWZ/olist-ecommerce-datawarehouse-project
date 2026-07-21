@@ -1,0 +1,16 @@
+
+# Python
+__pycache__/
+*.py[cod]
+
+# VS Code
+.vscode/
+
+# Logs
+*.log
+
+# Environment
+.env
+
+# Ignore raw dataset
+data/raw/

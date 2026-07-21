@@ -42,9 +42,19 @@ from scripts.silver.load_products import load_product as load_product_silver
 from scripts.silver.load_sellers import load_seller as load_seller_silver
 from scripts.silver.load_geolocation import load_geolocations as load_geolocation_silver
 from scripts.silver.load_product_category_name_translation import load_product_category_name_translations as load_product_category_name_translation_silver
+
 # ==========================================================
-# Loader Registry (Single Source of Truth)
+# Validation Modules
 # ==========================================================
+from scripts.validations.validate_customers import validate_customers
+from scripts.validations.validate_orders import validate_orders
+from scripts.validations.validate_order_items import validate_order_items
+from scripts.validations.validate_order_payments import validate_order_payments
+from scripts.validations.validate_order_reviews import validate_order_reviews
+from scripts.validations.validate_products import validate_products
+from scripts.validations.validate_sellers import validate_sellers
+from scripts.validations.validate_geolocation import validate_geolocation
+from scripts.validations.validate_product_category_name_translation import validate_product_category_name_translation
 
 BRONZE_select_loaders = {
     "customers": load_customer_bronze,
@@ -68,17 +78,30 @@ SILVER_select_loaders = {
     "sellers": load_seller_silver,
     "geolocation": load_geolocation_silver,
     "product_category_name_translation": load_product_category_name_translation_silver,
+}
 
+VALIDATION_loaders = {
+    "customers": validate_customers,
+    "orders": validate_orders,
+    "order_items": validate_order_items,
+    "order_payments": validate_order_payments,
+    "order_reviews": validate_order_reviews,
+    "products": validate_products,
+    "sellers": validate_sellers,
+    "geolocation": validate_geolocation,
+    "product_category_name_translation": validate_product_category_name_translation,
 }
 
 LAYER_REGISTRY = {
     "bronze": BRONZE_select_loaders,
     "silver": SILVER_select_loaders,
+    "validate": VALIDATION_loaders,
 }
 
-def run_loader(spark, dataset, select_loaders):
+def run_loader(spark, dataset, select_loaders, layer):
     """
     Execute a single dataset loader safely with performance tracking.
+    Conditionally omits Spark for validation tasks.
     """
     if dataset not in select_loaders:
         raise ValueError(f"Dataset '{dataset}' not found.")
@@ -87,12 +110,15 @@ def run_loader(spark, dataset, select_loaders):
     start_time = datetime.now()
 
     print("\n" + "=" * 60)
-    print(f"Starting load: {dataset}")
+    print(f"Starting execution: {layer.upper()} - {dataset}")
     print(f"Start Time:    {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
-    # Execute the loader function
-    select_loaders[dataset](spark)
+    # Execute the loader function (Skip passing Spark if it's the validation layer)
+    if layer == "validate":
+        select_loaders[dataset]()
+    else:
+        select_loaders[dataset](spark)
 
     # Capture end time and calculate duration
     end_time = datetime.now()
@@ -100,7 +126,7 @@ def run_loader(spark, dataset, select_loaders):
     duration_in_seconds = int(duration.total_seconds())
 
     print("\n" + "=" * 60)
-    print(f"Completed load: {dataset}")
+    print(f"Completed execution: {layer.upper()} - {dataset}")
     print(f"Start Time :     {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"End Time   :     {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"Duration   :     {duration_in_seconds} seconds")
@@ -148,7 +174,7 @@ def main():
             # ==================================================
             # Step 3: User input
             # ==================================================
-            dataset = input("\nEnter dataset to load: ").strip().lower()
+            dataset = input("\nEnter dataset to process: ").strip().lower()
 
             # ==================================================
             # Step 4: Exit option
@@ -158,25 +184,25 @@ def main():
                 break
 
             # ==================================================
-            # Step 5: Load ALL datasets
+            # Step 5: Load/Validate ALL datasets
             # ==================================================
             elif dataset == "all":
-                print(f"\nStarting full {layer.title()}...\n")
+                print(f"\nStarting full {layer.title()} layer execution...\n")
                 for name in select_loaders:
                     try:
-                        run_loader(spark, name, select_loaders)
+                        run_loader(spark, name, select_loaders, layer)
                     except Exception as e:
-                        print(f"\nERROR loading {name}: {e}")
+                        print(f"\nERROR processing {name} in {layer}: {e}")
 
             # ==================================================
-            # Step 6: Load SINGLE dataset
+            # Step 6: Load/Validate SINGLE dataset
             # ==================================================
             elif dataset in select_loaders:
                 try:
-                    run_loader(spark, dataset, select_loaders)
+                    run_loader(spark, dataset, select_loaders, layer)
                 except Exception as e:
                     print("\n" + "=" * 60)
-                    print("LOADER FAILED")
+                    print("PROCESS FAILED")
                     print("=" * 60)
                     print(f"Layer   : {layer}")
                     print(f"Dataset : {dataset}")
@@ -219,3 +245,5 @@ def main():
 # ==========================================================
 if __name__ == "__main__":
     main()
+
+    

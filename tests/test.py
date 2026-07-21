@@ -1,223 +1,236 @@
 """
 ============================================================
-Bronze Layer
-
-Load Customers Dataset
-
-ETL Process
-
-1. Read CSV
-2. Validate CSV
-3. Truncate Bronze Table
-4. Load Data into PostgreSQL
-5. Verify row count
-============================================================
-"""
-
-
-
-def load_customer(spark):
-    """
-    Load Customers CSV into Bronze Layer.
-    """
-
-    print("=" * 60)
-    print("Loading Customers Dataset...")
-    print("=" * 60)
-
-    # ---------------------------------------------------------
-    # CSV File Path
-    # ---------------------------------------------------------
-
-    csv_path = os.path.abspath(
-        os.path.join(
-            os.path.dirname(__file__),
-            "../../data/raw/olist_customers_dataset.csv"
-        )
-    )
-
-    # ---------------------------------------------------------
-    # Validate File
-    # ---------------------------------------------------------
-
-    if not os.path.exists(csv_path):
-        raise FileNotFoundError(
-            f"CSV file not found:\n{csv_path}"
-        )
-
-    # ---------------------------------------------------------
-    # Read CSV
-    # ---------------------------------------------------------
-
-    customers_df = (
-        spark.read
-        .option("header", True)
-        .option("inferSchema", True)
-        .csv(csv_path)
-    )
-
-    # ---------------------------------------------------------
-    # Preview Data
-    # ---------------------------------------------------------
-
-    customers_df.show(5, truncate=False)
-
-    customers_df.printSchema()
-
-    # ---------------------------------------------------------
-    # Truncate Bronze Table
-    # ---------------------------------------------------------
-
-    execute_sql(
-        """
-        TRUNCATE TABLE bronze.customers;
-        """
-    )
-
-    print("bronze.customers truncated successfully.")
-
-    # ---------------------------------------------------------
-    # Write DataFrame to PostgreSQL
-    # ---------------------------------------------------------
-    print("=" * 60)
-    print("Loading data into PostgreSQL...")
-    print("=" * 60)
-
-    customers_df.write \
-        .format("jdbc") \
-        .option("url", JDBC_URL) \
-        .option("dbtable", "bronze.customers") \
-        .option("user", DB_USER) \
-        .option("password", DB_PASSWORD) \
-        .option("driver", "org.postgresql.Driver") \
-        .mode("append") \
-        .save()
-
-    print("Customers loaded successfully.")
-
-    # ---------------------------------------------------------
-    # Verify row count with PostgreSQL
-    # ---------------------------------------------------------
-
-    csv_count = customers_df.count()
-
-    print("=" * 60)
-    print(f"CSV Row Count: {csv_count}")
-    print("=" * 60)
-
-    db_count = fetch_one(
-    """
-    SELECT COUNT(*)
-    FROM bronze.customers;
-    """
-    )[0]
-
-    print("=" * 60)
-    print(f"Database Row Count: {db_count}")
-    print("=" * 60)
-
-
-    if csv_count == db_count:
-        print("=" * 60)
-        print("SUCCESS: Data loaded correctly.")
-        print("=" * 60)
-    else:
-        print("=" * 60)
-        print("ERROR: Row count mismatch.")
-        print("=" * 60)
-
-
-# =========================================================================
-"""
-============================================================
 Main ETL Pipeline
 
-Execution Order
+Purpose
+------------------------------------------------------------
+Central controller for all ETL layers.
 
+Execution Flow
+------------------------------------------------------------
 1. Create Spark Session
-2. Run Bronze Layer
-3. Stop Spark
+2. Select ETL Layer
+3. Select Dataset
+4. Execute Loader
+5. Stop Spark Session
 ============================================================
 """
 
-from scripts.utils.spark_session import create_spark_session
-from scripts.bronze.load_customers import load_customer
-from scripts.bronze.load_orders import load_order
-from scripts.bronze.load_geolocations import load_geolocation
-from scripts.bronze.load_order_items import load_order_item
-from scripts.bronze.load_order_payments import load_order_payment
-from scripts.bronze.load_order_reviews import load_order_review
-from scripts.bronze.load_products import load_product
-from scripts.bronze.load_sellers import load_seller
-from scripts.bronze.load_product_category_name_translations import load_product_category_name_translation
+from datetime import datetime  # Tracking execution times
+from scripts.utils.spark_session1 import create_spark_session
+
+# Bronze loaders (Aliased to avoid collision)
+from scripts.bronze.load_customers1 import load_customer as load_customer_bronze
+from scripts.bronze.load_orders1 import load_order as load_order_bronze
+from scripts.bronze.load_geolocations1 import load_geolocation as load_geolocation_bronze
+from scripts.bronze.load_order_items1 import load_order_item as load_order_item_bronze
+from scripts.bronze.load_order_payments1 import load_order_payment as load_order_payment_bronze
+from scripts.bronze.load_order_reviews1 import load_order_review as load_order_review_bronze
+from scripts.bronze.load_products1 import load_product as load_product_bronze
+from scripts.bronze.load_sellers1 import load_seller as load_seller_bronze
+from scripts.bronze.load_product_category_name_translations1 import (
+    load_product_category_name_translation as load_product_category_name_translation_bronze
+)
+
+# Silver loaders (Aliased to avoid collision)
+from scripts.silver.load_customers import load_customer as load_customer_silver
+from scripts.silver.load_orders import load_orders as load_orders_silver
+from scripts.silver.load_order_items import load_order_item as load_order_item_silver
+from scripts.silver.load_order_payments import load_order_payment as load_order_payment_silver
+from scripts.silver.load_order_reviews import load_order_review as load_order_review_silver
+from scripts.silver.load_products import load_product as load_product_silver
+from scripts.silver.load_sellers import load_seller as load_seller_silver
+from scripts.silver.load_geolocation import load_geolocations as load_geolocation_silver
+from scripts.silver.load_product_category_name_translation import load_product_category_name_translations as load_product_category_name_translation_silver
+# ==========================================================
+# Loader Registry (Single Source of Truth)
+# ==========================================================
+
+# ==========================================================
+# Validation Modules
+# ==========================================================
+
+from scripts.validations.validate_customers import (
+    validate_customers
+)
+
+BRONZE_select_loaders = {
+    "customers": load_customer_bronze,
+    "orders": load_order_bronze,
+    "order_items": load_order_item_bronze,
+    "order_payments": load_order_payment_bronze,
+    "order_reviews": load_order_review_bronze,
+    "products": load_product_bronze,
+    "sellers": load_seller_bronze,
+    "geolocation": load_geolocation_bronze,
+    "product_category_name_translation": load_product_category_name_translation_bronze,
+}
+
+SILVER_select_loaders = {
+    "customers": load_customer_silver,
+    "orders": load_orders_silver,
+    "order_items": load_order_item_silver,
+    "order_payments": load_order_payment_silver,
+    "order_reviews": load_order_review_silver,
+    "products": load_product_silver,
+    "sellers": load_seller_silver,
+    "geolocation": load_geolocation_silver,
+    "product_category_name_translation": load_product_category_name_translation_silver,
+
+}
+
+VALIDATION_loaders = {
+
+    "customers": validate_customers,
+
+}
+
+LAYER_REGISTRY = {
+    "bronze": BRONZE_select_loaders,
+    "silver": SILVER_select_loaders,
+    "validate": VALIDATION_loaders,
+}
+
+def run_loader(spark, dataset, select_loaders):
+    """
+    Execute a single dataset loader safely with performance tracking.
+    """
+    if dataset not in select_loaders:
+        raise ValueError(f"Dataset '{dataset}' not found.")
+
+    # Capture start time
+    start_time = datetime.now()
+
+    print("\n" + "=" * 60)
+    print(f"Starting load: {dataset}")
+    print(f"Start Time:    {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print("=" * 60)
+
+    # Execute the loader function
+    select_loaders[dataset](spark)
+
+    # Capture end time and calculate duration
+    end_time = datetime.now()
+    duration = end_time - start_time
+    duration_in_seconds = int(duration.total_seconds())
+
+    print("\n" + "=" * 60)
+    print(f"Completed load: {dataset}")
+    print(f"Start Time :     {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"End Time   :     {end_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Duration   :     {duration_in_seconds} seconds")
+    print("=" * 60)
+
 
 def main():
     """
-    Main ETL execution.
+    Main entry point for the ETL pipeline.
     """
-    spark = create_spark_session()
-
-    LOADERS = {
-        "customers": load_customer,
-        "orders": load_order,
-        "order_items": load_order_item,
-        "order_payments": load_order_payment,
-        "order_reviews": load_order_review,       
-        "products": load_product,
-        "sellers": load_seller,
-        "geolocation": load_geolocation,
-        "product_category_name_translation": load_product_category_name_translation,
-    }
+    spark = None
 
     try:
+        # ======================================================
+        # Step 1: Create Spark Session
+        # ======================================================
+        spark = create_spark_session()
+
         while True:
-            # User input to load all or specific tables
-            try:
-                dataset = input(
-                    "\nEnter dataset to load (or 'all'): "
-                ).strip().lower()
+            print("\nAvailable Layers:")
+            for layer in LAYER_REGISTRY:
+                print(f"  - {layer}")
+            print("  - exit")
 
-                if dataset == "all":
-                    for name, loader in LOADERS.items():
-                        print(f"\nLoading {name}...")
-                        loader(spark)
+            layer = input("\nEnter ETL layer: ").strip().lower()
 
-                elif dataset in LOADERS:
-                    LOADERS[dataset](spark)
+            if layer == "exit":
+                break
 
-                else:
-                    raise ValueError(
-                        f"Dataset '{dataset}' does not exist."
-                    )
+            if layer not in LAYER_REGISTRY:
+                print("Invalid layer.")
+                continue
 
-            except ValueError as e:
-                print(f"\nInput Error: {e}")
-                print("\nAvailable datasets:")
-                for name in LOADERS:
-                    print(f" - {name}")
-                print(" - all")
+            select_loaders = LAYER_REGISTRY[layer]
 
-            except Exception as e:
-                print(f"\nUnexpected Error during execution: {e}")
+            # ==================================================
+            # Step 2: Show menu
+            # ==================================================
+            print("\nAvailable datasets:")
+            for name in select_loaders:
+                print(f"  - {name}")
+            print("  - all")
+            print("  - exit")
 
-            # Ask the user if they want to choose again or exit
+            # ==================================================
+            # Step 3: User input
+            # ==================================================
+            dataset = input("\nEnter dataset to load: ").strip().lower()
+
+            # ==================================================
+            # Step 4: Exit option
+            # ==================================================
+            if dataset == "exit":
+                print("\nExiting pipeline...")
+                break
+
+            # ==================================================
+            # Step 5: Load ALL datasets
+            # ==================================================
+            elif dataset == "all":
+                print(f"\nStarting full {layer.title()}...\n")
+                for name in select_loaders:
+                    try:
+                        run_loader(spark, name, select_loaders)
+                    except Exception as e:
+                        print(f"\nERROR loading {name}: {e}")
+
+            # ==================================================
+            # Step 6: Load SINGLE dataset
+            # ==================================================
+            elif dataset in select_loaders:
+                try:
+                    run_loader(spark, dataset, select_loaders)
+                except Exception as e:
+                    print("\n" + "=" * 60)
+                    print("LOADER FAILED")
+                    print("=" * 60)
+                    print(f"Layer   : {layer}")
+                    print(f"Dataset : {dataset}")
+                    print(f"Reason  : {e}")
+                    print("=" * 60)
+
+            # ==================================================
+            # Step 7: Invalid input handling
+            # ==================================================
+            else:
+                print("\nInvalid dataset name.")
+                print("Please choose from the available list.")
+
+            # ==================================================
+            # Step 8: Ask user to continue
+            # ==================================================
             while True:
-                choice = input("\nWould you like to choose again? (Yes/No): ").strip().lower()
-                if choice in ['yes', 'no']:
+                choice = input("\nDo you want to continue? (yes/no): ").strip().lower()
+                if choice in ["yes", "no"]:
                     break
-                print("Invalid input. Please enter 'Yes' or 'No'.")
+                print("Invalid input. Please type 'yes' or 'no'.")
 
-            if choice == 'no':
-                print("\nExiting the program...")
+            if choice == "no":
+                print("\nStopping pipeline...")
                 break
 
     except Exception as e:
-        print(f"\nCritical Pipeline Error: {e}")
+        print("\nCRITICAL PIPELINE ERROR")
+        print("=" * 40)
+        print(e)
 
     finally:
-        if 'spark' in locals():
+        if spark:
             spark.stop()
-            print("\nSpark Session Closed.")
+            print("\nSpark session stopped successfully.")
 
+
+# ==========================================================
+# Entry Point
+# ==========================================================
 if __name__ == "__main__":
     main()
