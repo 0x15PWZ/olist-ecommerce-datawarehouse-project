@@ -287,7 +287,5 @@ This project is licensed under MIT lincense for more info.
 Hi there! I'm Phyoe Wai Zaw, also known as Tharphyoe. I’m an enthusiast in Data Engineering and this is the one of my projects.
 
 ---
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](www.linkedin.com/in/
-phyoe-wai-zaw-418906392
-)
 
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/phyoe-wai-zaw-418906392)
