@@ -288,6 +288,5 @@ Hi there! I'm Phyoe Wai Zaw, also known as Tharphyoe. I’m an enthusiast in Dat
 
 ---
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/phyoe-wai-zaw-418906392)
-
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/phyoe-wai-zaw-418906392) | 
 [![Facebook](https://img.shields.io/badge/Facebook-1877F2?style=for-the-badge&logo=facebook&logoColor=white)](https://www.facebook.com/phyoe.wai.zaw.689855)
