@@ -1,4 +1,4 @@
-# Ecommerence Data Warehouse Project
+# Olist Ecommerence Data Warehouse Project
 
 ***Welcome to the Data Warehouse and Analytics Project repository!
 This project demonstrates a comprehensive data warehousing and analytics solution, from building a data warehouse to generating actionable insights. Designed as a portfolio project, it highlights industry best practices in data engineering and analytics.***
@@ -253,11 +253,9 @@ This project involves:
 🎯 This repository is an excellent resource for professionals and students looking to showcase expertise in:
 
 - SQL Development
-- Data Architect
 - Data Engineering
-- ETL Pipeline Developer
-- Data Modeling
-- Data Analytics
+- PySpark Engineering
+- Data Modelling
 
 ---
 ## Project Requirements
