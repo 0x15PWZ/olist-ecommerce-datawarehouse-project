@@ -17,6 +17,7 @@ Business Rules
 4. Convert payment_type to uppercase
 5. Limit VARCHAR column lengths
 6. Cast payment_installments to Integer
+7. Set installments to null when less than 0 or equal to 0
 7. Cast payment_value to Decimal(10,2)
 
 ============================================================
@@ -29,7 +30,8 @@ from pyspark.sql.functions import (
     trim,
     upper,
     row_number,
-    substring
+    substring,
+    when
 )
 
 from pyspark.sql.types import (
@@ -153,9 +155,26 @@ def transform_order_payments(df):
             )
         )
     )
-
     # ==========================================================
     # Rule 7
+    # Installments set to Null when 0 or less than 0
+    # ==========================================================
+
+    df = (
+        df
+        .withColumn(
+            "payment_installments",
+            when(
+                col("payment_installments") <= 0,
+                None
+            ).otherwise(
+                col("payment_installments")
+            )
+        )
+    )
+
+    # ==========================================================
+    # Rule 8
     # Cast Payment Value
     # ==========================================================
 

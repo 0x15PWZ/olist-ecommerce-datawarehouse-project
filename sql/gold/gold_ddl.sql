@@ -1,0 +1,4 @@
+-- Create gold schema
+DROP SCHEMA IF EXISTS gold CASCADE;
+CREATE SCHEMA gold;
+

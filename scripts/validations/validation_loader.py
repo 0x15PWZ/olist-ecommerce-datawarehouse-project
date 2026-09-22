@@ -29,7 +29,7 @@ def print_validation_header(table_name: str):
     """
 
     print("\n" + "=" * 70)
-    print("SILVER LAYER VALIDATION")
+    print("VALIDATION")
     print("=" * 70)
     print(f"Table : {table_name}")
     print("=" * 70)

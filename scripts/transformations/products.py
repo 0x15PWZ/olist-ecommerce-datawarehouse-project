@@ -29,7 +29,8 @@ from pyspark.sql.functions import (
     trim,
     upper,
     row_number,
-    substring
+    substring,
+    when
 )
 
 from pyspark.sql.types import (
@@ -166,36 +167,49 @@ def transform_products(df):
 
     # ==========================================================
     # Rule 7
-    # Cast Decimal Columns
+    # Cast Decimal Columns and set to Null
     # ==========================================================
 
     df = (
         df
         .withColumn(
             "product_weight_g",
-            col("product_weight_g").cast(
-                DecimalType(10, 2)
+            when(
+                col("product_weight_g") <= 0,
+                None
+            ).otherwise(
+                col("product_weight_g")
             )
         )
         .withColumn(
             "product_length_cm",
-            col("product_length_cm").cast(
-                DecimalType(10, 2)
+            when(
+                col("product_length_cm") <= 0,
+                None
+            ).otherwise(
+                col("product_length_cm")
             )
         )
         .withColumn(
             "product_height_cm",
-            col("product_height_cm").cast(
-                DecimalType(10, 2)
+            when(
+                col("product_height_cm") <= 0,
+                None
+            ).otherwise(
+                col("product_height_cm")
             )
         )
         .withColumn(
             "product_width_cm",
-            col("product_width_cm").cast(
-                DecimalType(10, 2)
+            when(
+                col("product_width_cm") <= 0,
+                None
+            ).otherwise(
+                col("product_width_cm")
             )
         )
     )
+
 
     # ==========================================================
     # Rule 8

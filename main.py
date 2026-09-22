@@ -44,6 +44,24 @@ from scripts.silver.load_geolocation import load_geolocations as load_geolocatio
 from scripts.silver.load_product_category_name_translation import load_product_category_name_translations as load_product_category_name_translation_silver
 
 # ==========================================================
+# Gold loaders
+# ==========================================================
+
+from scripts.gold.load_dim_customer import load_dim_customers
+from scripts.gold.load_dim_product import load_dim_products
+from scripts.gold.load_dim_seller import load_dim_sellers
+from scripts.gold.load_dim_payment import load_dim_payment
+from scripts.gold.load_dim_review import load_dim_review
+from scripts.gold.load_dim_date import load_dim_date
+
+from scripts.gold.load_fact_sales import load_fact_sales
+from scripts.gold.load_fact_payments import load_fact_payments
+from scripts.gold.load_fact_reviews import load_fact_reviews
+
+from scripts.gold.load_vw_payment_summary import load_vw_payment_summary
+from scripts.gold.load_vw_review_summary import load_vw_review_summary
+
+# ==========================================================
 # Validation Modules
 # ==========================================================
 from scripts.validations.validate_customers import validate_customers
@@ -55,6 +73,14 @@ from scripts.validations.validate_products import validate_products
 from scripts.validations.validate_sellers import validate_sellers
 from scripts.validations.validate_geolocation import validate_geolocation
 from scripts.validations.validate_product_category_name_translation import validate_product_category_name_translation
+from scripts.validations.validate_gold_dim_date import validate_gold_dim_date
+from scripts.validations.validate_gold_dim_customer import validate_gold_dim_customers
+from scripts.validations.validate_gold_dim_product import validate_gold_dim_products
+from scripts.validations.validate_gold_dim_seller import validate_gold_dim_sellers
+from scripts.validations.validate_gold_dim_payment import validate_gold_dim_payment
+from scripts.validations.validate_gold_dim_review import validate_gold_dim_review
+from scripts.validations.validate_gold_fact_sales import validate_gold_fact_sales
+from scripts.validations.validate_gold_fact_sales_business import validate_gold_fact_sales_business
 
 BRONZE_select_loaders = {
     "customers": load_customer_bronze,
@@ -80,6 +106,25 @@ SILVER_select_loaders = {
     "product_category_name_translation": load_product_category_name_translation_silver,
 }
 
+GOLD_select_loaders = {
+
+    # Dimensions
+    "dim_customers": load_dim_customers,
+    "dim_products": load_dim_products,
+    "dim_sellers": load_dim_sellers,
+    "dim_payment": load_dim_payment,
+    "dim_review": load_dim_review,
+    "dim_date": load_dim_date,
+
+    # Facts
+    "fact_sales": load_fact_sales,
+    "fact_payments": load_fact_payments,
+    "fact_reviews": load_fact_reviews,
+    "view_payments": load_vw_payment_summary,
+    "view_reviews": load_vw_review_summary,
+
+}
+
 VALIDATION_loaders = {
     "customers": validate_customers,
     "orders": validate_orders,
@@ -90,12 +135,26 @@ VALIDATION_loaders = {
     "sellers": validate_sellers,
     "geolocation": validate_geolocation,
     "product_category_name_translation": validate_product_category_name_translation,
+    "gold_dim_date": validate_gold_dim_date,
+    "gold_dim_customers": validate_gold_dim_customers,
+    "gold_dim_products": validate_gold_dim_products,
+    "gold_dim_sellers": validate_gold_dim_sellers,
+    "gold_dim_payments": validate_gold_dim_payment,
+    "gold_dim_review": validate_gold_dim_review,
+    "gold_fact_sales": validate_gold_fact_sales,
+    "gold_fact_sale_business": validate_gold_fact_sales_business,
 }
 
 LAYER_REGISTRY = {
+
     "bronze": BRONZE_select_loaders,
+
     "silver": SILVER_select_loaders,
+
+    "gold": GOLD_select_loaders,
+
     "validate": VALIDATION_loaders,
+
 }
 
 def run_loader(spark, dataset, select_loaders, layer):
