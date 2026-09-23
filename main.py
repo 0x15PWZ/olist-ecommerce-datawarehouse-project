@@ -59,7 +59,7 @@ from scripts.gold.load_fact_payments import load_fact_payments
 from scripts.gold.load_fact_reviews import load_fact_reviews
 
 from scripts.gold.load_vw_payment_summary import load_vw_payment_summary
-from scripts.gold.load_vw_review_summary import load_vw_review_summary
+
 
 # ==========================================================
 # Validation Modules
@@ -121,7 +121,7 @@ GOLD_select_loaders = {
     "fact_payments": load_fact_payments,
     "fact_reviews": load_fact_reviews,
     "view_payments": load_vw_payment_summary,
-    "view_reviews": load_vw_review_summary,
+
 
 }
 

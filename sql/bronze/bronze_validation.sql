@@ -2,8 +2,7 @@
     This script is for the manipulation of data in PostgreSQL.
 */
 
--- Check the column data types for specific table
-SELECT 
+-SELECT 
     column_name, 
     data_type,
     character_maximum_length AS max_length
@@ -11,7 +10,8 @@ FROM
     information_schema.columns
 WHERE 
     table_schema = 'bronze' -- Replace with schema name if different
-    AND table_name = 'order_items'; -- Replace with table name
+    AND table_name = 'order_items';- Check the column data types for specific table
+ -- Replace with table name
 
 -- Check the data existence
 select * 
